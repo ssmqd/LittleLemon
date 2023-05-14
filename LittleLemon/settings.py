@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'LittleLemonAPI',
     'rest_framework.authtoken',
     'rest_framework',
+    'djoser',
 ]
 
 MIDDLEWARE = [
@@ -129,4 +130,15 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',  # <-- And here
     ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'rest_framework.filters.OrderingFilter',
+        'rest_framework.filters.SearchFilter',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 3,
 }
+
+DJOSER = {
+	'USER_ID_FIELD':'username'
+}
+

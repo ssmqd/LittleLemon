@@ -4,8 +4,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status, generics
-from .models import MenuItem, Category
-from .serializers import MenuItemSerializer, CategorySerializer
+from .models import MenuItem, Category, Cart, UserGroup
+from .serializers import MenuItemSerializer, CategorySerializer, CartSerializer, UserGroupSerializer
 
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
@@ -44,4 +44,17 @@ class MenuItemViews(generics.ListCreateAPIView):
         else:
             permission_classes = []
         return [permission() for permission in permission_classes]
+    ordering_fields = ['price']
+    filtering_fields = ['category']
+    search_fields = ['title']
 
+class CartView(generics.ListCreateAPIView):
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer	
+    # permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        return Cart.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        
