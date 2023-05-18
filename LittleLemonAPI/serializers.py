@@ -1,26 +1,26 @@
 from rest_framework import serializers
-from .models import MenuItem, Category, Cart, Order, UserGroup
-from rest_framework.fields import CurrentUserDefault
-from django.contrib.auth.models import User, AnonymousUser
+from .models import MenuItem, Category, Cart, Order, OrderItem
+from django.contrib.auth.models import AnonymousUser
+from datetime import date
 
 class CategorySerializer (serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id','title']
+        fields = ['id', 'slug', 'title']
 
 class MenuItemSerializer(serializers.ModelSerializer):
-    category_id = serializers.IntegerField(write_only=True)
     category = CategorySerializer(read_only=True)
+    category_id = serializers.IntegerField(write_only=True)
     class Meta:
         model = MenuItem
-        fields = ['title', 'price', 'featured', 'category', 'category_id']
+        fields = ['id', 'title', 'price', 'featured', 'category', 'category_id']
         extra_kwargs = {
             'price': {'min_value': 2},
             'inventory':{'min_value':0}
         }
 
 class CartSerializer(serializers.ModelSerializer):
-    unit_price = serializers.DecimalField(source='menuitem.price', max_digits=6, decimal_places=2, read_only=True)
+    # unit_price = serializers.PrimaryKeyRelatedField(MenuItem)
     price = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
 
@@ -49,8 +49,33 @@ class CartSerializer(serializers.ModelSerializer):
 
     
 
+# class OrderSerializer(serializers.ModelSerializer):
+
+#     order = serializers.PrimaryKeyRelatedField(read_only=True)
+#     menuitem = serializers.PrimaryKeyRelatedField(read_only=True)
+#     quantity = serializers.IntegerField(read_only=True)
+#     unit_price = serializers.DecimalField(read_only=True, max_digits=6, decimal_places=2)
+#     price = serializers.DecimalField(read_only=True, max_digits=6, decimal_places=2)
+
+#     class Meta:
+#         model = Orders
+#         fields = ['order', 'menuitem', 'quantity', 'unit_price', 'price']
+
+    
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['order', 'menuitem', 'quantity', 'unit_price', 'price']
+
+
 class OrderSerializer(serializers.ModelSerializer):
+    order_items = OrderItemSerializer(read_only = True, many = True)
     class Meta:
         model = Order
-        fields = ['order', 'menuitem', 'quantity', 'unit_price', 'price']
-        
+        fields = ('id', 'user', 'delivery_crew', 'status', 'order_items', 'total', 'date')
+
+class OrderDetailSerializer(serializers.ModelSerializer):
+    order_items = OrderItemSerializer(read_only = True, many = True)
+    class Meta:
+        model = Order
+        fields = ('order_items')
